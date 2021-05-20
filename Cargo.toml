@@ -1,0 +1,20 @@
+[package]
+name = "chain_bot_redux"
+version = "0.1.0"
+authors = ["maddymakesgames <madelinemakesgames@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+# use local version of slashy because we don't have it on crates.io yet
+# we also want to be able to quickly add functions to slashy in case there is functionality missing
+slashy = {path = "../slashy/slashy"}
+
+serenity = { version = "0.10.7", default-features = false, features = ["unstable_discord_api", "builder", "cache", "client", "gateway", "http", "model", "utils", "rustls_backend"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+dotenv = "0.15"
+rand = "0.8"
+diesel = { version = "1.4.5", features = ["postgres"] }
+serde_json = "1"
+serde = "1"
+lazy_static = "1.4"
+regex = "1.4"
