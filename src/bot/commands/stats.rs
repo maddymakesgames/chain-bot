@@ -1,5 +1,11 @@
 use serenity::{builder::CreateEmbed, model::id::UserId, utils::Colour};
-use slashy::{command, commands::CommandResult, framework::CommandContext, subcommand};
+use slashy::{
+    argument::Argument,
+    command,
+    commands::CommandResult,
+    framework::CommandContext,
+    subcommand,
+};
 
 use crate::{
     database::{get_or_create_user, tables::leaderboards::get_or_create_server_user},
@@ -21,7 +27,13 @@ async fn stats(ctx: &CommandContext) -> CommandResult {
     let data = ctx.ctx.data.read().await;
     let database = data.get::<DatabaseConn>().unwrap().lock().await;
 
-    let user = get_or_create_user(&database, ctx.author().unwrap().id);
+    let target = if let Some(Argument::User(u)) = ctx.get_arg("user") {
+        *u
+    } else {
+        ctx.author().unwrap().id
+    };
+
+    let user = get_or_create_user(&database, target);
     let self_user = ctx.ctx.http.get_current_user().await?;
     let guild = ctx.guild().await?;
     let server_user = get_or_create_server_user(&database, guild.id, UserId(user.id.into()));
