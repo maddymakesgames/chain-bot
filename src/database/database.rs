@@ -10,7 +10,7 @@ use diesel::{
     PgConnection,
 };
 
-pub use super::tables::{guilds::*, users::*};
+pub use super::tables::{guilds, users::*};
 
 pub fn establish_connection() -> PgConnection {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL not set");
