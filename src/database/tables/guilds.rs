@@ -20,17 +20,26 @@ pub fn update_guild(conn: &PgConnection, guild_id: GuildId, settings: &GuildSett
             .map(|v| v.0.into())
             .collect(),
         blacklist: settings.blacklist,
-        old_style: settings.old_style,
+        style: settings.style.clone(),
         remove_messages: settings.remove_messages,
         chain_threshold: settings.chain_threshold as i16,
         alternate_member: settings.alternate_member,
     };
 
-    diesel::insert_into(guilds)
-        .values(&row)
+    diesel::update(guilds.filter(id.eq::<U64Wrapper>(guild_id.0.into())))
+        .set((
+            prefixes.eq(row.prefixes),
+            channel_filters.eq(row.channel_filters),
+            blacklist.eq(row.blacklist),
+            style.eq(row.style),
+            remove_messages.eq(row.remove_messages),
+            chain_threshold.eq(row.chain_threshold),
+            alternate_member.eq(row.alternate_member),
+        ))
         .execute(conn)
         .unwrap();
 }
+
 
 pub fn new_guild(conn: &PgConnection, guild_id: GuildId) -> GuildSettings {
     use self::guilds::dsl::*;
@@ -50,7 +59,7 @@ pub fn new_guild(conn: &PgConnection, guild_id: GuildId) -> GuildSettings {
             .map(|v| ChannelId(*v))
             .collect(),
         blacklist: result.blacklist,
-        old_style: result.old_style,
+        style: result.style,
         remove_messages: result.remove_messages,
         chain_threshold: result.chain_threshold as u16,
         alternate_member: result.alternate_member,
@@ -74,7 +83,7 @@ pub fn get_guilds(conn: &PgConnection) -> HashMap<GuildId, GuildSettings> {
                     .map(|v: u64| ChannelId(v))
                     .collect(),
                 blacklist: row.blacklist,
-                old_style: row.old_style,
+                style: row.style.clone(),
                 remove_messages: row.remove_messages,
                 chain_threshold: row.chain_threshold as u16,
                 alternate_member: row.alternate_member,
@@ -90,8 +99,52 @@ struct GuildRow {
     pub prefixes: Vec<String>,
     pub channel_filters: Vec<U64Wrapper>,
     pub blacklist: bool,
-    pub old_style: bool,
+    pub style: String,
     pub remove_messages: bool,
     pub chain_threshold: i16,
     pub alternate_member: bool,
 }
+
+macro_rules! update_setting {
+    ($($method_name: ident, $param: ident, $field: ident, $type: ty),*) => {
+        $(pub fn $method_name(conn: &PgConnection, guild_id: GuildId, $param: $type) {
+            use self::guilds::dsl::*;
+
+            diesel::update(guilds.filter(id.eq::<U64Wrapper>(guild_id.0.into())))
+                .set($field.eq($param))
+                .execute(conn)
+                .unwrap();
+        })*
+    };
+}
+
+update_setting!(
+    update_prefix,
+    new_prefixes,
+    prefixes,
+    Vec<String>,
+    update_filters,
+    new_filters,
+    channel_filters,
+    Vec<U64Wrapper>,
+    update_blacklist,
+    blacklist_flag,
+    blacklist,
+    bool,
+    update_style,
+    new_style,
+    style,
+    String,
+    update_remove,
+    remove_flag,
+    remove_messages,
+    bool,
+    update_threshold,
+    new_threshold,
+    chain_threshold,
+    i16,
+    update_alternate,
+    alternate_flag,
+    alternate_member,
+    bool
+);
