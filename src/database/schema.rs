@@ -4,7 +4,7 @@ table! {
         prefixes -> Array<Text>,
         channel_filters -> Array<Int8>,
         blacklist -> Bool,
-        old_style -> Bool,
+        style -> Text,
         remove_messages -> Bool,
         chain_threshold -> Int2,
         alternate_member -> Bool,
