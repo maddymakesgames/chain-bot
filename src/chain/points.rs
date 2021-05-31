@@ -55,6 +55,10 @@ pub fn points_per_user(chain: &Chain, breaker: UserId) -> HashMap<UserId, u64> {
         breaker_msgs = 0;
     }
 
+    if breaker_msgs == 0 && users.len() < 3 {
+        return users.iter().map(|u| (*u, 0)).collect();
+    }
+
     // Get the percent of the chain each user contributed
     let user_percent = user_percent((chain.length - breaker_msgs) as u64, user_messages);
 
