@@ -33,9 +33,9 @@ impl TypeMapKey for DatabaseConn {
 async fn main() {
     dotenv::dotenv().unwrap();
 
-    let connection = database::establish_connection();
-
+    // Load in environment vars
     let token = std::env::var("DISCORD_TOKEN").expect("No token provided");
+
     let application_id = std::env::var("APPLICATION_ID").expect("No application id provided");
     let application_id = serde_json::from_str::<u64>(&application_id).unwrap();
 
@@ -49,7 +49,8 @@ async fn main() {
         .await
         .event_handler(ChainHandler)
         .command::<TOP_COMMAND>()
-        .command::<STATS_COMMAND>();
+        .command::<STATS_COMMAND>()
+        .command::<SETTINGS_COMMAND>();
 
 
     let mut client = Client::builder(token)
@@ -59,12 +60,19 @@ async fn main() {
         .expect("Error making client");
 
     let mut data = client.data.write().await;
+
+    // Add chain store
     data.insert::<ChainCounter>(HashMap::default());
-    data.insert::<DatabaseConn>(Arc::new(Mutex::new(connection)));
 
-    guild_setting_cache.write().await.load_guilds().await;
-    data.insert::<GuildSettingsStore>(guild_setting_cache);
+    // Add database connection
+    data.insert::<DatabaseConn>(Arc::new(Mutex::new(database::establish_connection())));
 
+    // Load in guild data from the database
+    guild_setting_cache.write().await.load_guilds();
+    // Add guild settings cache
+    data.insert::<GuildSettingsStore>(guild_setting_cache.clone());
+
+    // We have to drop data before we start or the RwLock will never let us access it in commands
     drop(data);
 
     if let Err(err) = client.start().await {
