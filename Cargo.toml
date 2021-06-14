@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 # use local version of slashy because we don't have it on crates.io yet
 # we also want to be able to quickly add functions to slashy in case there is functionality missing
-slashy = {path = "../slashy/slashy"}
+slashy = "0.1.0"
 
 serenity = { version = "0.10.7", default-features = false, features = ["unstable_discord_api", "builder", "cache", "client", "gateway", "http", "model", "utils", "rustls_backend"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
