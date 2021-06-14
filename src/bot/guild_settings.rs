@@ -32,11 +32,11 @@ pub struct GuildSettingsCache {
 
 macro_rules! get_field {
     ($($field:ident, $field_mut:ident, $type: ty),*) => {
-        $(pub fn $field<'a>(&'a self, guild_id: GuildId) -> $type {
+        $(pub fn $field(&self, guild_id: GuildId) -> $type {
             self.get_or_default(guild_id).$field
         }
 
-        pub fn $field_mut<'a>(&'a mut self, guild_id: GuildId) -> &'a mut $type {
+        pub fn $field_mut(&mut self, guild_id: GuildId) -> &mut $type {
             &mut self.get_mut_or_default(guild_id).$field
         })*
     };
@@ -79,7 +79,7 @@ impl GuildSettingsCache {
         self.guild_map = get_guilds(&conn);
     }
 
-    pub fn get<'a>(&'a self, guild_id: GuildId) -> Option<&'a GuildSettings> {
+    pub fn get(&self, guild_id: GuildId) -> Option<&GuildSettings> {
         self.guild_map.get(&guild_id)
     }
 
@@ -95,7 +95,7 @@ impl GuildSettingsCache {
         }
     }
 
-    pub fn get_mut_or_default<'a>(&'a mut self, guild_id: GuildId) -> &'a mut GuildSettings {
+    pub fn get_mut_or_default(&mut self, guild_id: GuildId) -> &mut GuildSettings {
         if self.guild_map.contains_key(&guild_id) {
             self.guild_map.get_mut(&guild_id).unwrap()
         } else {
